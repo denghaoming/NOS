@@ -114,6 +114,9 @@ class Mint extends Component {
             let sellRate = parseInt(baseInfo[12]);
             //销毁比例
             let burnRate = 10000 - sellRate;
+
+            let w3nPrice = await poolContract.methods.getTokenETHPrice(WalletState.config.W3N).call();
+
             this.setState({
                 totalUsdt: showFromWei(totalUsdt, usdtDecimals, 2),
                 totalAmount: showFromWei(totalAmount, usdtDecimals, 2),
@@ -131,6 +134,7 @@ class Mint extends Component {
                 tokenPrice: showFromWei(tokenPrice, usdtDecimals, usdtDecimals),
                 burnRate: burnRate,
                 sellRate: sellRate,
+                w3nPrice: showFromWei(w3nPrice, usdtDecimals, usdtDecimals),
             })
 
             //挖矿代币列表
@@ -190,6 +194,12 @@ class Mint extends Component {
                 let userJoinTokenAllowances = userInfo[4];
                 //团队人数
                 let teamNum = parseInt(userInfo[5]);
+                //个人预计今日产出
+                let userLastDailyReward = new BN(0);
+                if (!totalAmount.isZero()) {
+                    userLastDailyReward = userTotalAmount.mul(lastDailyReward).div(totalAmount);
+                }
+
                 let userJoinTokenLen = userJoinTokenBalances.length;
                 let userJoinTokens = [];
                 for (let i = 0; i < userJoinTokenLen; ++i) {
@@ -217,6 +227,7 @@ class Mint extends Component {
                     userJoinTokens: userJoinTokens,
                     selTokenBalance: selTokenBalance,
                     teamNum: teamNum,
+                    userLastDailyReward: showFromWei(userLastDailyReward, tokenDecimals, 6),
                 })
 
                 //直推列表合约
@@ -463,14 +474,18 @@ class Mint extends Component {
                 <Header></Header>
                 <div className='Module ModuleTop'>
                     <div className='ModuleContentWitdh RuleTitle'>
+                        <div>W3N价格</div>
+                        <div>{this.state.w3nPrice} U</div>
+                    </div>
+                    <div className='ModuleContentWitdh RuleTitle'>
                         <div>MOSS价格</div>
                         <div>{this.state.tokenPrice} U</div>
                     </div>
-                    <div className='ModuleContentWitdh RuleTitle'>
+                    <div className='ModuleContentWitdh RuleTitle mt5'>
                         <div>全网累计参与价值</div>
                         <div>{this.state.totalUsdt} U</div>
                     </div>
-                    <div className='ModuleContentWitdh RuleTitle mt5'>
+                    <div className='ModuleContentWitdh RuleTitle'>
                         <div>全网算力</div>
                         <div>{this.state.totalAmount}</div>
                     </div>
@@ -478,13 +493,18 @@ class Mint extends Component {
                         <div>今日产出</div>
                         <div>{this.state.lastDailyReward}</div>
                     </div>
-                    <div className='ModuleContentWitdh RuleTitle mt5'>
+                    <div className='ModuleContentWitdh RuleTitle'>
                         <div>当前因子</div>
                         <div>{this.state.dailyAmountRate}</div>
                     </div>
-                    <div className='ModuleContentWitdh RuleTitle mt5'>
+                    <div className='ModuleContentWitdh RuleTitle'>
                         <div>参与代币分配</div>
                         <div>{this.state.burnRate}:{this.state.sellRate}</div>
+                    </div>
+
+                    <div className='ModuleContentWitdh RuleTitle mt5'>
+                        <div>个人今日预计收益</div>
+                        <div>{this.state.userLastDailyReward}</div>
                     </div>
                 </div>
 
